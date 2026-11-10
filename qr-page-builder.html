@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR Business Page Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --ink:#1c1f26; --muted:#6b7280; --line:#e5e7eb; --accent:#0f766e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:20px 24px; background:var(--ink); color:#fff; }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.75; }
+  main { display:grid; grid-template-columns: minmax(300px, 420px) 1fr; gap:20px; padding:20px; max-width:1200px; margin:0 auto; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; }
+  h2 { font-size:15px; margin:0 0 12px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; }
+  input, select, textarea { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; }
+  textarea { resize:vertical; min-height:60px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .hint { font-size:11px; color:var(--muted); margin-top:3px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:14px; cursor:pointer; margin-top:14px; width:100%; }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .qr-box { text-align:center; padding:16px; }
+  .qr-box img, .qr-box canvas { max-width:220px; height:auto; }
+  .qr-title { font-size:13px; font-weight:600; margin-bottom:6px; }
+  .qr-sub { font-size:11px; color:var(--muted); margin-top:6px; }
+  .preview-wrap { display:flex; justify-content:center; background:#e9ebef; border-radius:12px; padding:16px; }
+  iframe { width:375px; height:700px; border:1px solid var(--line); border-radius:24px; background:#fff; max-width:100%; }
+  .qrs { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+  @media (max-width: 860px) { .qrs { grid-template-columns:1fr; } }
+  .note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>QR Business Page Builder</h1>
+  <p>Fill in a business, get a mobile page + QR codes. Host free, print QR stickers, sell for ₹500–1500.</p>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>1. Business details</h2>
+
+    <label>Business name *</label>
+    <input id="name" placeholder="e.g. Sharma Medical Store">
+
+    <div class="row">
+      <div>
+        <label>Category</label>
+        <input id="category" placeholder="Salon, Clinic, Café…">
+      </div>
+      <div>
+        <label>City / area</label>
+        <input id="city" placeholder="Pune, Kothrud">
+      </div>
+    </div>
+
+    <label>Tagline</label>
+    <input id="tagline" placeholder="Fresh cuts, friendly service">
+
+    <label>WhatsApp number (with country code)</label>
+    <input id="whatsapp" placeholder="919876543210">
+    <div class="hint">Digits only, 91 for India.</div>
+
+    <label>Phone number to call</label>
+    <input id="phone" placeholder="+91 98765 43210">
+
+    <label>Google review link</label>
+    <input id="review" placeholder="https://search.google.com/local/writereview?placeid=…">
+    <div class="hint">Get it from Google Business Profile → Share review form.</div>
+
+    <label>Instagram handle</label>
+    <input id="instagram" placeholder="yourshop (without @)">
+
+    <label>Google Maps link</label>
+    <input id="maps" placeholder="https://maps.google.com/?q=…">
+
+    <label>Website (optional)</label>
+    <input id="website" placeholder="https://">
+
+    <label>Address / opening hours (optional)</label>
+    <textarea id="address" placeholder="Shop 4, MG Road. Mon–Sat 10am–9pm"></textarea>
+
+    <div class="row">
+      <div>
+        <label>Brand colour</label>
+        <input id="color" type="color" value="#0f766e">
+      </div>
+      <div>
+        <label>Final page URL (after hosting)</label>
+        <input id="pageUrl" placeholder="https://yourname.github.io/shop">
+      </div>
+    </div>
+
+    <button id="generate">Generate page & QR codes</button>
+  </section>
+
+  <section>
+    <div class="panel">
+      <h2>2. Preview</h2>
+      <div class="preview-wrap">
+        <iframe id="preview" title="Preview"></iframe>
+      </div>
+      <div class="actions" style="margin-top:14px">
+        <button id="download" class="secondary">Download page (.html)</button>
+        <button id="copy" class="secondary">Copy page code</button>
+      </div>
+    </div>
+
+    <div class="qrs">
+      <div class="panel qr-box">
+        <div class="qr-title">Page QR (customer scans → your page)</div>
+        <div id="qrPage"></div>
+        <div class="actions" style="margin-top:10px">
+          <button id="dlPageQr" class="secondary">Download PNG</button>
+        </div>
+        <div class="qr-sub">Print as a sticker for the counter.</div>
+      </div>
+      <div class="panel qr-box">
+        <div class="qr-title">Review QR (direct to Google review)</div>
+        <div id="qrReview"></div>
+        <div class="actions" style="margin-top:10px">
+          <button id="dlReviewQr" class="secondary">Download PNG</button>
+        </div>
+        <div class="qr-sub">Optional second sticker for the billing counter.</div>
+      </div>
+    </div>
+
+    <div class="panel note">
+      <strong>Google policy:</strong> Never offer discounts or gifts in exchange for reviews, and do not hide or filter negative reviews. Keep the review link open to everyone.
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  let pageHtml = "";
+
+  function esc(s) {
+    return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+  function digits(s) { return String(s || "").replace(/\D/g, ""); }
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(",");
+  }
+
+  function read() {
+    return {
+      name: $("name").value.trim(),
+      category: $("category").value.trim(),
+      city: $("city").value.trim(),
+      tagline: $("tagline").value.trim(),
+      whatsapp: digits($("whatsapp").value),
+      phone: $("phone").value.trim(),
+      review: $("review").value.trim(),
+      instagram: $("instagram").value.trim().replace(/^@/, ""),
+      maps: $("maps").value.trim(),
+      website: $("website").value.trim(),
+      address: $("address").value.trim(),
+      color: $("color").value || "#0f766e",
+      pageUrl: $("pageUrl").value.trim()
+    };
+  }
+
+  function buildPage(d) {
+    const waText = encodeURIComponent("Hi " + d.name + ", I found you on your QR page. I'd like to know more.");
+    const buttons = [];
+    if (d.review)    buttons.push(["⭐ Leave a Google review", d.review, true]);
+    if (d.whatsapp)  buttons.push(["💬 Chat on WhatsApp", "https://wa.me/" + d.whatsapp + "?text=" + waText, false]);
+    if (d.phone)     buttons.push(["📞 Call us", "tel:" + d.phone.replace(/\s/g, ""), false]);
+    if (d.instagram) buttons.push(["📸 Instagram @" + d.instagram, "https://instagram.com/" + encodeURIComponent(d.instagram), false]);
+    if (d.maps)      buttons.push(["📍 Find us on Maps", d.maps, false]);
+    if (d.website)   buttons.push(["🌐 Visit website", d.website, false]);
+
+    const btnHtml = buttons.map(([label, href, isReview]) =>
+      `<a class="btn${isReview ? " review" : ""}" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`
+    ).join("\n    ");
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(d.name)}</title>
+<style>
+  :root { --c: ${d.color}; --rgb: ${hexToRgb(d.color)}; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f7f7f8; color:#1c1f26; }
+  .wrap { max-width:460px; margin:0 auto; padding:32px 20px 48px; text-align:center; }
+  .logo { width:84px; height:84px; border-radius:50%; background:var(--c); color:#fff; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700; margin:0 auto 14px; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  .cat { font-size:13px; color:#6b7280; margin-bottom:4px; }
+  .tag { font-size:15px; color:#374151; margin:8px 0 22px; }
+  .btn { display:block; text-decoration:none; background:#fff; color:#1c1f26; border:1px solid #e5e7eb; border-radius:14px; padding:15px 18px; margin:10px 0; font-size:16px; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  .btn:hover { border-color:var(--c); }
+  .btn.review { background:var(--c); color:#fff; border-color:var(--c); }
+  .info { margin-top:26px; font-size:14px; color:#4b5563; line-height:1.6; white-space:pre-line; }
+  .foot { margin-top:30px; font-size:11px; color:#9ca3af; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">${esc((d.name || "B").charAt(0).toUpperCase())}</div>
+  <h1>${esc(d.name)}</h1>
+  ${d.category || d.city ? `<div class="cat">${esc([d.category, d.city].filter(Boolean).join(" · "))}</div>` : ""}
+  ${d.tagline ? `<div class="tag">${esc(d.tagline)}</div>` : ""}
+  ${btnHtml}
+  ${d.address ? `<div class="info">${esc(d.address)}</div>` : ""}
+  <div class="foot">Powered by your QR page</div>
+</div>
+</body>
+</html>`;
+  }
+
+  function makeQR(container, text) {
+    container.innerHTML = "";
+    if (!text) { container.innerHTML = '<div class="qr-sub">Add a link to generate</div>'; return null; }
+    if (typeof QRCode === "undefined") { container.innerHTML = '<div class="qr-sub">QR library could not load. Check internet connection.</div>'; return null; }
+    new QRCode(container, { text: text, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+    return container;
+  }
+
+  function pngFrom(container) {
+    const canvas = container.querySelector("canvas");
+    if (canvas) return canvas.toDataURL("image/png");
+    const img = container.querySelector("img");
+    return img ? img.src : null;
+  }
+
+  function download(href, filename) {
+    const a = document.createElement("a");
+    a.href = href; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function slug(s) { return (s || "business").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+  function generate() {
+    const d = read();
+    if (!d.name) { alert("Please enter the business name."); return; }
+    pageHtml = buildPage(d);
+    $("preview").srcdoc = pageHtml;
+    makeQR($("qrPage"), d.pageUrl || "https://your-page-url-here");
+    makeQR($("qrReview"), d.review);
+  }
+
+  $("generate").addEventListener("click", generate);
+
+  $("download").addEventListener("click", () => {
+    if (!pageHtml) generate();
+    const blob = new Blob([pageHtml], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    download(url, slug($("name").value) + ".html");
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  $("copy").addEventListener("click", async () => {
+    if (!pageHtml) generate();
+    try { await navigator.clipboard.writeText(pageHtml); alert("Page code copied. Paste into a new file named index.html."); }
+    catch (e) { alert("Copy failed. Use Download instead."); }
+  });
+
+  $("dlPageQr").addEventListener("click", () => {
+    const src = pngFrom($("qrPage"));
+    if (src) download(src, slug($("name").value) + "-page-qr.png");
+  });
+  $("dlReviewQr").addEventListener("click", () => {
+    const src = pngFrom($("qrReview"));
+    if (src) download(src, slug($("name").value) + "-review-qr.png");
+  });
+
+  // Initial demo so the preview is never empty
+  $("name").value = "Sample Salon";
+  $("category").value = "Salon";
+  $("city").value = "Pune";
+  $("tagline").value = "Walk in, walk out looking your best";
+  $("whatsapp").value = "919999999999";
+  $("phone").value = "+91 99999 99999";
+  $("instagram").value = "samplesalon";
+  generate();
+})();
+</script>
+</body>
+</html>
